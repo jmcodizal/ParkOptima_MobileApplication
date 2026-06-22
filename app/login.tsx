@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { ThemedText } from '@/components/themed-text';
@@ -30,20 +30,21 @@ export default function LoginScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.logoRing}>
-              <ThemedText style={styles.logoText}>P</ThemedText>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.card}>
+            <View style={styles.header}>
+              <View style={styles.logoRing}>
+                <ThemedText style={styles.logoText}>P</ThemedText>
+              </View>
+              <ThemedText type="title" style={styles.title}>
+                ParkOptima
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                Smart Parking Management
+              </ThemedText>
             </View>
-            <ThemedText type="title" style={styles.title}>
-              ParkOptima
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
-              Smart Parking Management
-            </ThemedText>
-          </View>
-          <View style={styles.role}>
+            <View style={styles.role}>
             <View style={styles.roleInner}>
               {roles.map((role) => {
                 const isActive = role === selectedRole;
@@ -102,6 +103,7 @@ export default function LoginScreen() {
           </View>
         </View>
       </SafeAreaView>
+    </ScrollView>
     </ThemedView>
   );
 }
@@ -113,9 +115,18 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    padding: 24,
+    padding: 16,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: '#0e1b42',
+  },
+  contentContainer: {
+    minHeight: '100%',
+    justifyContent: 'center',
+    padding: 16,
   },
   card: {
     width: '100%',
