@@ -56,7 +56,7 @@ export default function TabLayout() {
         options={{
           title: 'Scan Out',
           tabBarIcon: ({ color, focused }) => (
-            <IconSymbol size={24} name="qrcode.viewfinder" color={focused ? '#ffffff' : color} />
+            <IconSymbol size={24} name="qrcode" color={focused ? '#ffffff' : color} />
           ),
         }}
       />
