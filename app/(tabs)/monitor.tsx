@@ -2,11 +2,13 @@ import { ScrollView, StyleSheet, TextInput, View, Pressable } from 'react-native
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import TopBar from '@/components/ui/top-bar';
 
 export default function MonitorScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <TopBar />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <ThemedText type="title" style={styles.title}>
             Live Monitor
@@ -154,9 +156,18 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    padding: 24,
+  },
+  contentContainer: {
+    padding: 20,
+    paddingBottom: 32,
   },
   header: {
+    marginBottom: 24,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: 24,
   },
   title: {
@@ -175,7 +186,8 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: 10,
     marginBottom: 20,
   },
   statCard: {
@@ -208,19 +220,21 @@ const styles = StyleSheet.create({
   },
   searchBarRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 10,
     marginBottom: 22,
   },
   searchInput: {
     flex: 1,
+    minWidth: 160,
     backgroundColor: '#132351',
     borderColor: '#253d88',
     borderWidth: 1,
     borderRadius: 16,
     color: '#ffffff',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
   filterButton: {
     paddingVertical: 14,
@@ -342,6 +356,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 13,
     fontWeight: '600',
+  },
+
+  logoutBtn: {
+    padding: 6,
+    borderRadius: 8,
   },
   paidStatus: {
     color: '#67d18f',
