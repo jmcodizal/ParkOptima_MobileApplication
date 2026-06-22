@@ -1,22 +1,66 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import TopBar from '@/components/ui/top-bar';
 
-export default function ScanScreen() {
+export default function ScanOutScreen() {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  const [scannedData, setScannedData] = useState<string | null>(null);
+
+  const requestPermission = async () => {
+    try {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === 'granted');
+      return status === 'granted';
+    } catch {
+      setHasPermission(false);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    setScanned(true);
+    setScannedData(data);
+    setCameraActive(false);
+    Alert.alert('Scanned', data);
+  };
+
+  const openCamera = async () => {
+    const granted = hasPermission === null ? await requestPermission() : hasPermission;
+    if (!granted) {
+      Alert.alert('Camera permission', 'Camera permission is required to scan QR codes.');
+      return;
+    }
+
+    setScanned(false);
+    setScannedData(null);
+    setCameraActive(true);
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerBadge}>
-          <ThemedText style={styles.headerBadgeText}>Entry</ThemedText>
+      <TopBar />
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.headerBadge}>
+            <ThemedText style={styles.headerBadgeText}>Entrance</ThemedText>
+          </View>
+          <ThemedText type="title" style={styles.title}>
+            QR Scanner
+          </ThemedText>
+          <ThemedText style={styles.subtitle}>
+            Scan entrance passes for registered vehicles.
+          </ThemedText>
         </View>
-        <ThemedText type="title" style={styles.title}>
-          QR Scanner
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Scan entry or exit passes for registered vehicles.
-        </ThemedText>
-      </View>
 
       <View style={styles.statusCard}>
         <View style={styles.statusRow}>
@@ -33,25 +77,47 @@ export default function ScanScreen() {
       <View style={styles.scanWrapper}>
         <ThemedText style={styles.scanLabel}>Align plate/QR within the frame</ThemedText>
         <View style={styles.scanFrame}>
-          <View style={styles.scanInner}>
-            <ThemedText style={styles.scanIcon}>⬜</ThemedText>
+          {cameraActive ? (
+            <BarCodeScanner
+              onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+              style={styles.scannerCamera}
+            />
+          ) : (
+            <View style={styles.scanInner}>
+              <ThemedText style={styles.scanIcon}>⬜</ThemedText>
+            </View>
+          )}
+          <View style={styles.scanBorderOverlay}>
+            <View style={styles.frameCornerTopLeft} />
+            <View style={styles.frameCornerTopRight} />
+            <View style={styles.frameCornerBottomLeft} />
+            <View style={styles.frameCornerBottomRight} />
           </View>
         </View>
+        {cameraActive && (
+          <TouchableOpacity style={styles.scannerCloseButton} onPress={() => setCameraActive(false)} activeOpacity={0.8}>
+            <ThemedText style={styles.scannerCloseText}>Stop scanning</ThemedText>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <Pressable style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}> 
+      <Pressable
+        onPress={openCamera}
+        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+      >
         <ThemedText style={styles.buttonText}>Activate camera</ThemedText>
       </Pressable>
 
       <View style={styles.lastScanCard}>
         <View style={styles.lastScanRow}>
           <ThemedText type="defaultSemiBold">AbC 1234</ThemedText>
-          <View style={styles.entryPill}>
-            <ThemedText style={styles.entryPillText}>Entry</ThemedText>
+          <View style={styles.exitPill}>
+            <ThemedText style={styles.exitPillText}>Exit</ThemedText>
           </View>
         </View>
         <ThemedText style={styles.lastScanName}>Harry Potter · P10 assigned</ThemedText>
       </View>
+      </ScrollView>
     </ThemedView>
   );
 }
@@ -60,21 +126,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0e1b42',
-    padding: 24,
+  },
+  contentContainer: {
+    padding: 18,
+    paddingBottom: 32,
   },
   header: {
+    marginBottom: 20,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
   headerBadge: {
     alignSelf: 'flex-start',
     borderRadius: 999,
-    backgroundColor: '#d7f6d8',
+    backgroundColor: '#f7d7d8',
     paddingHorizontal: 14,
     paddingVertical: 6,
     marginBottom: 12,
   },
   headerBadgeText: {
-    color: '#166a2f',
+    color: '#a32f33',
     fontWeight: '700',
     fontSize: 12,
   },
@@ -131,10 +206,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#3f6ee8',
     borderRadius: 28,
-    padding: 24,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 260,
+    minWidth: '100%',
   },
   scanInner: {
     width: 180,
@@ -148,6 +224,65 @@ const styles = StyleSheet.create({
   scanIcon: {
     color: '#6a8bef',
     fontSize: 48,
+  },
+  scannerCamera: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  scanBorderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'space-between',
+  },
+  frameCornerTopLeft: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    width: 24,
+    height: 24,
+    borderLeftWidth: 2,
+    borderTopWidth: 2,
+    borderColor: '#ffffff',
+  },
+  frameCornerTopRight: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 24,
+    height: 24,
+    borderRightWidth: 2,
+    borderTopWidth: 2,
+    borderColor: '#ffffff',
+  },
+  frameCornerBottomLeft: {
+    position: 'absolute',
+    bottom: 14,
+    left: 14,
+    width: 24,
+    height: 24,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#ffffff',
+  },
+  frameCornerBottomRight: {
+    position: 'absolute',
+    bottom: 14,
+    right: 14,
+    width: 24,
+    height: 24,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#ffffff',
+  },
+  scannerCloseButton: {
+    marginTop: 14,
+    alignSelf: 'center',
+    backgroundColor: '#1f3f90',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  scannerCloseText: {
+    color: '#ffffff',
+    fontWeight: '700',
   },
   button: {
     borderRadius: 18,
@@ -177,15 +312,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    color: '#ffffff',
   },
-  entryPill: {
-    backgroundColor: '#daf6e1',
+  exitPill: {
+    backgroundColor: '#f7d7d8',
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  entryPillText: {
-    color: '#1f6b25',
+  exitPillText: {
+    color: '#a32f33',
     fontWeight: '700',
     fontSize: 12,
   },
@@ -193,5 +329,29 @@ const styles = StyleSheet.create({
     color: '#c0c9f4',
     fontSize: 15,
     lineHeight: 22,
+  },
+  logoutBtn: {
+    padding: 6,
+    borderRadius: 8,
+  },
+  scannerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 40,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scannerClose: {
+    position: 'absolute',
+    top: 48,
+    right: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 });
